@@ -8,28 +8,28 @@
 #ifndef CUDA_API_WRAPPERS_MISCELLANY_HPP_
 #define CUDA_API_WRAPPERS_MISCELLANY_HPP_
 
-#include <cuda/api/error.hpp>
-#include <cuda/common/types.hpp>
+#include <cuda/api/types.hpp>
 
 #include <cuda_runtime_api.h>
+#include <cuda/api/error.hpp>
+
+#include <cuda.h>
+#include <ostream>
+#include <utility>
 
 namespace cuda {
 
 /**
- * @brief Ensures the CUDA runtime has fully initialized
+ * Obtains the CUDA Runtime version
  *
- * @note The CUDA runtime uses lazy initialization, so that until you perform
- * certain actions, the CUDA driver is not used to create a context, nothing
- * is done on the device etc. This function forces this initialization to
- * happen immediately, while not having any other effect.
+ * @note unlike {@ref maximum_supported_by_driver()}, 0 cannot be returned,
+ * as we are actually using the runtime to obtain the version, so it does
+ * have _some_ version.
  */
-inline
-void force_runtime_initialization()
-{
-	// nVIDIA's Robin Thoni (https://www.rthoni.com/) guarantees
-	// the following code "does the trick"
-	auto status = cudaFree(nullptr);
-	throw_if_error(status, "Forcing CUDA runtime initialization");
+inline void initialize_driver() {
+	constexpr const unsigned dummy_flags { 0 }; // this is the only allowed value for flags
+	auto status = cuInit(dummy_flags);
+	throw_if_error(status, "Failed initializing the CUDA driver");
 }
 
 namespace device {
