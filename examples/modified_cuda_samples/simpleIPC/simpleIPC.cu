@@ -7,7 +7,6 @@
  * and the deriver is the owner of this code according to the EULA.
  *
  * Use this reasonably. If you want to discuss licensing formalities, please
- * contact the author.
  */
 
 #include "../helper_string.h"
@@ -265,8 +264,9 @@ void runTestMultiKernel(ipcCUDA_t *s_mem, int index)
 
 			printf("> Process %3d: Run kernel on GPU%d, taking source data from and writing results to process %d, GPU%d...\n",
 				   index, s_mem[index].device, 0, s_mem[0].device);
-			const dim3 threads(512, 1);
-			const dim3 blocks(DATA_BUF_SIZE / threads.x, 1);
+			constexpr const auto threads = 512;
+			static_assert(DATA_BUF_SIZE % threads == 0, "DATA_BUF_SIZE value must be divisible by the kernel block size");
+			auto blocks = DATA_BUF_SIZE / threads;
 			cuda::launch(
 				simpleKernel,
 				{ blocks, threads },
@@ -305,7 +305,7 @@ int main(int argc, char **argv)
 	exit(EXIT_WAIVED);
 #endif
 
-	ipcDevices_t *s_devices = (ipcDevices_t *) mmap(NULL, sizeof(*s_devices),
+	ipcDevices_t *s_devices = (ipcDevices_t *) mmap(nullptr, sizeof(*s_devices),
 													PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, 0, 0);
 	assert(MAP_FAILED != s_devices);
 
@@ -330,7 +330,7 @@ int main(int argc, char **argv)
 		g_processCount = 2; // two processes per single device
 	}
 
-	g_barrier = (ipcBarrier_t *) mmap(NULL, sizeof(*g_barrier),
+	g_barrier = (ipcBarrier_t *) mmap(nullptr, sizeof(*g_barrier),
 									  PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, 0, 0);
 	assert(MAP_FAILED != g_barrier);
 	memset((void *) g_barrier, 0, sizeof(*g_barrier));
@@ -338,7 +338,7 @@ int main(int argc, char **argv)
 	g_procSense = 0;
 
 	// shared memory for CUDA memory an event handlers
-	ipcCUDA_t *s_mem = (ipcCUDA_t *) mmap(NULL, g_processCount * sizeof(*s_mem),
+	ipcCUDA_t* s_mem = (ipcCUDA_t *) mmap(nullptr, g_processCount * sizeof(ipcCUDA_t*),
 										  PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, 0, 0);
 	assert(MAP_FAILED != s_mem);
 
