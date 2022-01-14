@@ -105,6 +105,7 @@ inline constexpr memory::shared::size_t max_shared_memory_per_block(const comput
 			// );
 			//
 			// for details, see the CUDA C Programming Guide.
+		(arch.major == 8) ?  48 * KiB :
 		invalid_architecture_return;
 }
 
